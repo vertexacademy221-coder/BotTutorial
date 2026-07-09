@@ -2,7 +2,10 @@
 Learn how to create bots in java programming language using Telegram API.
 
 ## Getting Started
-First, we’ll briefly cover how to obtain your API token.
+First, we’ll briefly cover how to obtain your API token. In this context, a token is a string that authenticates your bot (not your account) on the bot API. Each bot has a unique token which can also be revoked at any time via @BotFather. Obtaining a token is as simple as contacting @BotFather, issuing the /newbot command and following the steps until you're given a new token. You can find a step-by-step guide here.
+
+Your token will look something like this:
+	4839574812:AAFD39kkdpWt3ywyRZergyOLMaJhac60qc
 
 ### tutorial01 
 This first tutorial will guide you how to : 
