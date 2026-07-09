@@ -34,7 +34,7 @@ public class Bot extends TelegramLongPollingBot
 
 	@Override
 	public void onUpdateReceived(Update update) {
-		
+
 		var msg = update.getMessage();
 		var from = msg.getFrom();
 		var u_firstName = from.getFirstName();
@@ -53,7 +53,6 @@ public class Bot extends TelegramLongPollingBot
 		copyMessage(m_id, msg.getMessageId());
 		sendPic(m_id);
 		//System.out.println(update);
-
 	}
 
 	public long getId()
@@ -83,9 +82,9 @@ public class Bot extends TelegramLongPollingBot
 	{
 		String sender = Long.toString(who);
 		SendMessage sm = SendMessage.builder()
-						.chatId(sender)
-						.text(what)
-						.build();
+					.chatId(sender)
+				.text(what)
+			.build();
 		try
 		{
 			execute (sm);
@@ -107,10 +106,10 @@ public class Bot extends TelegramLongPollingBot
 
 		SendContact cm = new SendContact().builder()
 							.chatId(sender)
-							.firstName(user.getFirstName())
-							.lastName(user.getLastName())
-							.phoneNumber(user.getPhoneNumber())
-							.build();
+						.firstName(user.getFirstName())
+					.lastName(user.getLastName())
+				.phoneNumber(user.getPhoneNumber())
+			.build();
 		try 
 		{
 			execute (cm);
@@ -125,9 +124,9 @@ public class Bot extends TelegramLongPollingBot
 	{
 		SendPhoto pic = new SendPhoto().builder()
 					.chatId(who.toString())
-					.photo(new InputFile ("https://png.pngtree.com/background/20230519/original/pngtree-this-is-a-picture-of-a-tiger-cub-that-looks-straight-picture-image_2660243.jpg"))
-					.caption("This is a little cat")
-					.build();
+				.photo(new InputFile ("https://png.pngtree.com/background/20230519/original/pngtree-this-is-a-picture-of-a-tiger-cub-that-looks-straight-picture-image_2660243.jpg"))
+			.caption("This is a little cat")
+		.build();
 		try
 		{
 			execute (pic);
