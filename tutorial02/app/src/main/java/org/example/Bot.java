@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import org.telegram.telegrambots.meta.api.methods.CopyMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendContact;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -33,6 +34,7 @@ public class Bot extends TelegramLongPollingBot
 
 	@Override
 	public void onUpdateReceived(Update update) {
+		
 		var msg = update.getMessage();
 		var from = msg.getFrom();
 		var u_firstName = from.getFirstName();
@@ -48,8 +50,9 @@ public class Bot extends TelegramLongPollingBot
 			"\nLanguage code : " + languageCode);
 
 		// Echo : Send back the user message
-		sendMessage(m_id, msg.getText());
+		copyMessage(m_id, msg.getMessageId());
 		sendPic(m_id);
+		//System.out.println(update);
 
 	}
 
@@ -57,6 +60,24 @@ public class Bot extends TelegramLongPollingBot
 	{
 		return m_id;
 	}
+
+	public void copyMessage (Long who, Integer msgId)
+	{
+		CopyMessage cm = CopyMessage.builder()
+						.fromChatId(who.toString())   // We copy from the user
+					.chatId(who.toString())			// and send back to him
+				.messageId(msgId)					// Specify what message
+			.build();
+		try
+		{
+			execute (cm);
+		}
+		catch (TelegramApiException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 
 	public void sendMessage (Long who, String what)
 	{
@@ -79,7 +100,7 @@ public class Bot extends TelegramLongPollingBot
 	{
 		Contact user = new Contact();
 		user.setPhoneNumber("+221775778011");
-		user.setFirstName("NDIAYE");
+		user.setFirstName("BINYOUM");
 		user.setLastName("Yossep");
 
 		String sender = Long.toString(who);
