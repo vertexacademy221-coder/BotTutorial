@@ -1,24 +1,36 @@
 /*
- * Ce premier tuoriel vous expliquera tout ce que vous devez 
- * savoir pour créer votre premier bot Telegram.
+ * This first tutorial will explain everything you need to 
+ * know to create your first Telegram bot.
  * 
- * En résumé, l' API Telegram Bot peut être considérée comme un logiciel 
- * qui fournit des réponses encodées en JSON à vos requêtes.
- * Un bot, en revanche, est essentiellement une routine, un logiciel ou 
- * un script qui interroge l'API via une requête HTTPS et attend une réponse. 
- * Il existe plusieurs types de requêtes possibles, ainsi que de nombreux objets 
- * différents pouvant être utilisés et reçus en réponse.
+ * In short, the Telegram Bot API can be thought of as software 
+ * that provides JSON-encoded responses to your requests.
+ * A bot, on the other hand, is essentially a routine, a program, or 
+ * a script that queries the API via an HTTPS request and waits for a response. 
+ * There are several possible types of requests, as well as many 
+ * different objects that can be used and received in response.
  * 
  */
-
 package org.example;
 
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+
 public class App {
+
+    private static Bot bot = new Bot();
+
     public String getGreeting() {
         return "Hello World!";
     }
 
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+    public static void main(String[] args) throws TelegramApiException{
+
+        TelegramBotsApi botApi = new TelegramBotsApi(DefaultBotSession.class);
+        botApi.registerBot(bot); 
+
+        long botID = bot.getId();
+        bot.sendMessage(8913673783L, "hello World");
+        bot.sendContact(8913673783L);
     }
 }
