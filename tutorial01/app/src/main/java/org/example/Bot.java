@@ -67,12 +67,12 @@ public class Bot extends TelegramLongPollingBot
 	public void sendContact (long who) throws TelegramApiException
 	{
 		Contact user = new Contact();
-		user.setPhoneNumber("+221785879012");
-		user.setFirstName("BINYOUM");
-		user.setLastName("Youssouf");
+		user.setPhoneNumber("+221775778011");
+		user.setFirstName("NDIAYE");
+		user.setLastName("Yossep");
 
 		String sender = Long.toString(who);
-		
+
 		SendContact cm = new SendContact().builder()
 							.chatId(sender)
 							.firstName(user.getFirstName())
