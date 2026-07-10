@@ -1,5 +1,7 @@
 package org.example;
 
+import java.util.List;
+
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -9,7 +11,8 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
-
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.methods.CopyMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendContact;
@@ -30,24 +33,31 @@ public class Bot extends TelegramLongPollingBot
 	"Elle a pour vocation de former des cadres techniques de haut niveau et des ingénieurs généralistes innovants," +
 	"responsables et de dimension internationale, capables de répondre aux défis technologiques et aux besoins de développement du continent africain.\n\n" +
 	"La mission de l’EPF Africa s’articule autour de 3 valeurs fortes 'Innovation, Audace et Engagement' qui contribuent à forger" +
-	" l’identité de l’Ingénieur EPF acteur du changement et humaniste engagé";
+	" l’identité de l’Ingénieur EPF acteur du changement et humaniste engagé\n\n";
 
 	// Store the bot current mode
 	private boolean screaming = false;
 
+	// Keyboard markup buttons
+	private InlineKeyboardMarkup keyboardM1;
+	private InlineKeyboardMarkup keyboardM2;
+
 	// Get and store your telegram bot token here
 	private static final String BOT_TOKEN = System.getenv("BOT_TOKEN");
 
+	/*[getBotUsername]*/
 	@Override
 	public String getBotUsername() {
 	  return "Gainde221";
 	}
 
+	/*[getBotToken]*/
 	@Override
 	public String getBotToken() {
 	  return BOT_TOKEN;
 	}
 
+	/*[onUpdateReceived]*/
 	@Override
 	public void onUpdateReceived(Update update) {
 
@@ -58,6 +68,30 @@ public class Bot extends TelegramLongPollingBot
 		var isBot = from.getIsBot();
 		var languageCode = from.getLanguageCode();
 		m_id = from.getId();
+
+		var next = InlineKeyboardButton.builder()
+            .text("Next").callbackData("next")           
+            .build();
+
+		var back = InlineKeyboardButton.builder()
+		        .text("Back").callbackData("back")
+		        .build();
+
+		var url = InlineKeyboardButton.builder()
+		        .text("Tutorial")
+		        .url("https://core.telegram.org/bots/api")
+		        .build();
+
+        keyboardM1 = InlineKeyboardMarkup.builder()
+          				.keyboardRow(List.of(next))
+      				.build();  
+
+		//Buttons are wrapped in lists since each keyboard 
+		// is a set of button rows
+		keyboardM2 = InlineKeyboardMarkup.builder()
+		          		.keyboardRow(List.of(back))
+		          	.keyboardRow(List.of(url))
+	          	.build();
 		
 		System.out.println("Message : " + msg.getText()+ 
 			"\nFrom : " + u_firstName + (u_lastName == null || u_lastName.isEmpty() ? "" : " " + u_lastName) +
@@ -73,6 +107,8 @@ public class Bot extends TelegramLongPollingBot
 				screaming = false;
 			else if (msg.getText().equals("/start"))
 				start(m_id);
+			else if (msg.getText().equals("/menu"))
+				sendMenu(m_id, "<b>Menu 1</b>", keyboardM1);
 			else if (msg.getText().equals("/help"))
 				printHelp(m_id);
 			return;							// We don't want to echo commands
@@ -88,11 +124,13 @@ public class Bot extends TelegramLongPollingBot
 		}
 	}
 
+	/*[getId]*/
 	public long getId()
 	{
 		return m_id;
 	}
 
+	/*[copyMessage]*/
 	public void copyMessage (Long who, Integer msgId)
 	{
 		CopyMessage cm = CopyMessage.builder()
@@ -110,7 +148,7 @@ public class Bot extends TelegramLongPollingBot
 		}
 	}
 
-
+	/*[sendMessage]*/
 	public void sendMessage (Long who, String what)
 	{
 		String sender = Long.toString(who);
@@ -128,6 +166,7 @@ public class Bot extends TelegramLongPollingBot
 		}
 	}
 
+	/*[sendContact]*/
 	public void sendContact (long who)
 	{
 		Contact user = new Contact();
@@ -153,6 +192,7 @@ public class Bot extends TelegramLongPollingBot
 		}
 	}
 
+	/*[sendPic]*/
 	public void sendPic(Long who)
 	{
 		SendPhoto pic = new SendPhoto().builder()
@@ -171,7 +211,7 @@ public class Bot extends TelegramLongPollingBot
 	}
 
 	/* =====  PRIVATE ===== */
-
+	/*[start]*/
 	private void scream (Long who, Message message)
 	{
 		if (message.hasText()) 
@@ -184,6 +224,7 @@ public class Bot extends TelegramLongPollingBot
 		}
 	}
 
+	/*[start]*/
 	private void start(Long who)
 	{
 		SendMessage msg = new SendMessage().builder()
@@ -204,8 +245,38 @@ public class Bot extends TelegramLongPollingBot
 
 	}
 
+	/*[printHelp]*/
 	private void printHelp (Long who)
 	{
-		
+		SendMessage sm = new SendMessage().builder()
+										.chatId(who.toString())
+									.text("I Will be back very soon...")
+								.build();
+		try
+		{
+			execute (sm);
+		}
+		catch (TelegramApiException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/*[sendMenu]*/
+	private void sendMenu(Long who, String txt, InlineKeyboardMarkup kb)
+	{
+		SendMessage sm = new SendMessage().builder()
+								.chatId(who.toString())
+							.parseMode("HTML")
+						.text(txt)
+					.replyMarkup(kb)
+				.build();
+		try 
+		{
+			execute (sm);
+		}
+		catch (TelegramApiException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }
