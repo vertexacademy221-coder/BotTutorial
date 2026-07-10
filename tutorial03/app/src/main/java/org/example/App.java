@@ -1,6 +1,6 @@
 /*
- * This second tutorial will explain everything you need to 
- * know to create your first Telegram bot.
+ * This third tutorial will explain you how to create command 
+ * for your Telegram bot.
  * 
  * In short, the Telegram Bot API can be thought of as software 
  * that provides JSON-encoded responses to your requests.
