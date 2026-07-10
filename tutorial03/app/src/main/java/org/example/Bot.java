@@ -17,7 +17,9 @@ import org.telegram.telegrambots.meta.api.methods.CopyMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendContact;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 
 public class Bot extends TelegramLongPollingBot
 {
@@ -61,69 +63,58 @@ public class Bot extends TelegramLongPollingBot
 	@Override
 	public void onUpdateReceived(Update update) {
 
-		var msg = update.getMessage();
-		var from = msg.getFrom();
-		var u_firstName = from.getFirstName();
-		var u_lastName  = from.getLastName();
-		var isBot = from.getIsBot();
-		var languageCode = from.getLanguageCode();
-		m_id = from.getId();
+	    // --- 1. PRÉPARATION DES CLAVIERS (Toujours disponibles) ---
+	    var next = InlineKeyboardButton.builder().text("Next").callbackData("next").build();
+	    var back = InlineKeyboardButton.builder().text("Back").callbackData("back").build();
+	    var url = InlineKeyboardButton.builder().text("Tutorial").url("https://core.telegram.org/bots/api").build();
 
-		var next = InlineKeyboardButton.builder()
-            .text("Next").callbackData("next")           
-            .build();
+	    keyboardM1 = InlineKeyboardMarkup.builder().keyboardRow(List.of(next)).build();  
+	    keyboardM2 = InlineKeyboardMarkup.builder().keyboardRow(List.of(back)).keyboardRow(List.of(url)).build();
+	    
+	    // --- 2. TRAITEMENT SI C'EST UN CLIC SUR UN BOUTON (CallbackQuery) ---
+	    if (update.hasCallbackQuery()) {
+	        String queryId = update.getCallbackQuery().getId();
+	        String data    = update.getCallbackQuery().getData();
+	        Long who       = update.getCallbackQuery().getMessage().getChatId();
+	        int msgId      = update.getCallbackQuery().getMessage().getMessageId();
+	        
+	        // On envoie les infos à ta méthode dédiée
+	        buttonTap(who, queryId, data, msgId);
+	        return; // Important : On arrête la méthode ici pour ce clic
+	    }
 
-		var back = InlineKeyboardButton.builder()
-		        .text("Back").callbackData("back")
-		        .build();
+	    // --- 3. TRAITEMENT SI C'EST UN MESSAGE TEXTE CLASSIQUE ---
+	    if (update.hasMessage()) {
+	        var msg = update.getMessage();
+	        var from = msg.getFrom();
+	        m_id = from.getId(); // Ton ID utilisateur pour les commandes
 
-		var url = InlineKeyboardButton.builder()
-		        .text("Tutorial")
-		        .url("https://core.telegram.org/bots/api")
-		        .build();
+	        // Si c'est une commande (/menu, /start, etc.)
+	        if (msg.isCommand()) {
+	            if (msg.getText().equals("/scream")) {
+	                screaming = true;
+	            } else if (msg.getText().equals("/whisper")) {
+	                screaming = false;
+	            } else if (msg.getText().equals("/start")) {
+	                start(m_id);
+	            } else if (msg.getText().equals("/menu")) {
+	                sendMenu(m_id, "<b>Menu 1</b>", keyboardM1); // Envoie le Menu 1 avec le bouton "Next"
+             	} else if (msg.getText().equals("/back")) {
+             		sendMenu(m_id, "<b>Menu 2</b>", keyboardM2);	// Envoid le Menu 2 avec le bouton "Back"
+	            } else if (msg.getText().equals("/help")) {
+	                printHelp(m_id);
+	            }
+	            return; // On ne veut pas "echo" les commandes
+	        }
 
-        keyboardM1 = InlineKeyboardMarkup.builder()
-          				.keyboardRow(List.of(next))
-      				.build();  
-
-		//Buttons are wrapped in lists since each keyboard 
-		// is a set of button rows
-		keyboardM2 = InlineKeyboardMarkup.builder()
-		          		.keyboardRow(List.of(back))
-		          	.keyboardRow(List.of(url))
-	          	.build();
-		
-		System.out.println("Message : " + msg.getText()+ 
-			"\nFrom : " + u_firstName + (u_lastName == null || u_lastName.isEmpty() ? "" : " " + u_lastName) +
-			"\nID : " + m_id +
-			"\nIs a bot ? " + isBot + 
-			"\nLanguage code : " + languageCode);
-
-		if (msg.isCommand())
-		{
-			if (msg.getText().equals("/scream")) 			// If the command was /scream, we switch gears
-				screaming = true;
-			else if (msg.getText().equals("/whisper"))		// Otherwise we return to normal
-				screaming = false;
-			else if (msg.getText().equals("/start"))
-				start(m_id);
-			else if (msg.getText().equals("/menu"))
-				sendMenu(m_id, "<b>Menu 1</b>", keyboardM1);
-			else if (msg.getText().equals("/help"))
-				printHelp(m_id);
-			return;							// We don't want to echo commands
-		}
-
-		if (screaming)
-		{
-			scream(m_id, msg);
-		}
-		else
-		{
-			copyMessage(m_id, msg.getMessageId());
-		}
+	        // Si ce n'est pas une commande, on traite le texte normal
+	        if (screaming) {
+	            scream(m_id, msg);
+	        } else {
+	            copyMessage(m_id, msg.getMessageId());
+	        }
+	    }
 	}
-
 	/*[getId]*/
 	public long getId()
 	{
@@ -278,5 +269,44 @@ public class Bot extends TelegramLongPollingBot
 		{
 			e.printStackTrace();
 		}
+	}
+
+	/*[buttonTap]*/
+	private void buttonTap (Long who, String queryId, String data, int msgId)
+	{
+		// Build a new message based on an @msgId (existing one) sent by @who
+		EditMessageText newTxt = new EditMessageText().builder()
+									.chatId(who.toString())
+								.messageId(msgId)
+							.text("")
+						.build();
+
+		EditMessageReplyMarkup editMarkup = new EditMessageReplyMarkup().builder()
+											.chatId(who.toString())	// ID du sender
+										.messageId(msgId)		// ID du message à modifier
+									.build();	
+		if (data.equals("next"))
+		{
+			newTxt.setText("MENU 2");
+			editMarkup.setReplyMarkup(keyboardM2);
+		}
+		else if (data.equals("back"))
+		{
+			newTxt.setText("MENU 1");
+			editMarkup.setReplyMarkup(keyboardM1);
+		}
+
+		AnswerCallbackQuery close = new AnswerCallbackQuery().builder()
+								.callbackQueryId(queryId)
+							.build();
+		try {
+			execute(close);
+			execute(newTxt);
+			execute(editMarkup);	
+		}
+		catch (TelegramApiException e){
+			e.printStackTrace();
+		}
+		
 	}
 }
